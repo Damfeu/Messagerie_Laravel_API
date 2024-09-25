@@ -21,17 +21,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route pour la déconnexion
     // Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Route pour créer un groupe
+    Route::post('/groups', [GroupController::class, 'createGroup']);
+    // Route pour ajouter un membre à un groupe
+    Route::post('/groups/{groupId}/members', [GroupController::class, 'addMember']);
 });
 
 
-// Route pour créer un groupe
-Route::post('/groups', [GroupController::class, 'createGroup']);
+
+
 
 // Route pour récupérer tous les groupes
-Route::get('/groups', [GroupController::class, 'getGroups']);
+Route::get('/getGroups', [GroupController::class, 'getGroups']);
 
-// Route pour ajouter un membre à un groupe
-Route::post('/groups/{groupId}/members', [GroupController::class, 'addMember']);
 
 // Route pour uploader un fichier à un groupe
 Route::post('/groups/{groupId}/files', [GroupController::class, 'uploadFile']);
@@ -44,5 +47,5 @@ Route::post('/groups/{groupId}/files', [GroupController::class, 'uploadFile']);
 // Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-code', [AuthController::class, 'verifyCode']);
 
-
+// Aficher toutes groupes
 Route::get('/groups', [GroupController::class, 'index']);

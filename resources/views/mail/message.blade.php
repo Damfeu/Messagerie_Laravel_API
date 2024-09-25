@@ -6,7 +6,7 @@
 <body>
     <p>Bonjour,Bonsoir</p>
     @if($password)
-        <p>Votre compte <strong>EcoCollecte</strong> a été créer avec succès. Voici votre mot de pass pour vous connecter: <strong>{{ $password }}</strong></p>
+        <p>Votre compte <strong>FlickTalk</strong> a été créer avec succès. Voici votre mot de pass pour vous connecter: <strong>{{ $password }}</strong></p>
 
         
     @endif

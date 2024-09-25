@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('membres', function (Blueprint $table) {
+        Schema::create('invited_members', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('groupe_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->string('email');
             $table->timestamps();
+            $table->string('email'); // L'email doit être unique
+            // $table->string('name');
+            $table->foreignId('groupe_id')->constrained('groupes')->onDelete('cascade'); // Lien avec le groupe
         });
     }
 
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('membres');
+        Schema::dropIfExists('invited_members');
     }
 };

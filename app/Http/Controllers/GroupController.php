@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Mail\GroupMemberAddedNotification;
+use App\Mail\InviteToGroupMail;
 use App\Mail\MemberAddedConfirmation;
 use App\Models\Fichier;
 use App\Models\Groupe;
+use App\Models\InvitedMembers;
 use App\Models\Membre;
+use App\Models\User;
 use App\Notifications\GroupNotification;
 use App\Notifications\NewMemberNotification;
 use Illuminate\Http\Request;
@@ -22,74 +25,49 @@ class GroupController extends Controller
         // Validation des données
         $request->validate([
             'name' => 'required|string|max:255', // nom du groupe requis
-            'description'=> 'required|string|max:255',
+            'description' => 'required|string|max:255',
         ]);
-        
+
 
         // Création du groupe
 
-       try {
-        $groupe = Groupe::create([
-            'name' => $request->name,
-            'description'=>$request->description,
-        ]);
+        try {
+            $groupe = Groupe::create([
+                'name' => $request->name,
+                'description' => $request->description,
+            ]);
 
-        return response()->json([
-            'message' => 'Groupe créé avec succès!',
-            'groupe' => $groupe
-        ], 201);
-       } catch (\Throwable $th) {
-        // return $th;
-        return response()->json(['message'=> 'erreur de creation', 500]);
-       }
-       
+            return response()->json([
+                'message' => 'Groupe créé avec succès!',
+                'groupe' => $groupe
+            ], 201);
+        } catch (\Throwable $th) {
+            // return $th;
+            return response()->json(['message' => 'erreur de creation', 500]);
+        }
+
         // $groupe = Groupe::create($request->all());
         // return response()->json(['message' => 'Group created successfully', 'group' => $groupe], 201);
     }
 
 
 
-      // Méthode pour récupérer la liste des groupes
-      public function index()
-      {
-          // Récupérer tous les groupes
-          $groups = Groupe::all();
-  
-          // Retourner les groupes en réponse JSON
-          return response()->json($groups, 200);
-      }
-// pour voir les ficher envoyer par chaque membre
+    // Méthode pour récupérer la liste des groupes
+    public function index()
+    {
+        // Récupérer tous les groupes
+        $groups = Groupe::all();
+
+        // Retourner les groupes en réponse JSON
+        return response()->json($groups, 200);
+    }
+    // pour voir les ficher envoyer par chaque membre
     public function getGroups()
     {
         return response()->json(Groupe::with('membres', 'fichiers')->get());
     }
 
-    // public function addMember(Request $request, $groupId)
-    // {
-
-    //     // Validation des données
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|email|unique:membres,email',
-    //         'groupe_id' => 'required|exists:groupes,id', // Le groupe doit exister
-    //     ]);
-
-    //     // Ajout du membre
-    //     $membre = Membre::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'groupe_id' => $request->groupe_id,
-    //     ]);
-
-    //     return response()->json([
-    //         'message' => 'Membre ajouté avec succès au groupe!',
-    //         'membre' => $membre
-    //     ], 201);
-
-      
-    // }
-
-
+   
 
 
     // public function addMember(Request $request, $groupId)
@@ -97,50 +75,110 @@ class GroupController extends Controller
     //     // Validation des données
     //     $request->validate([
     //         'name' => 'required|string|max:255',
-    //         'email' => 'required|email|unique:membres,email',
+    //         'email' => 'required|email|:membres,email',
     //         'groupe_id' => 'required|exists:groupes,id', // Le groupe doit exister
     //     ]);
-    
-    //     // Ajout du membre
-    //     $membre = Membre::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'groupe_id' => $request->groupe_id,
-    //     ]);
-    
-    //     // Récupérer les détails du groupe et du créateur
+
+    //     // Récupérer le groupe
     //     $group = Groupe::find($groupId);
-    //     $addedBy = auth()->user(); // L'utilisateur qui ajoute le membre
-    
-    //     // Envoyer un email au nouveau membre pour confirmer son ajout
-    //     Mail::to($membre->email)->send(new MemberAddedConfirmation($membre->name, $group->name));
-    
-    //     // Récupérer tous les membres du groupe sauf le nouveau membre
-    //     $groupMembers = Membre::where('groupe_id', $groupId)
-    //                           ->where('id', '!=', $membre->id) // Exclure le nouveau membre
-    //                           ->get();
-    
-    //     // Envoyer un email à chaque membre existant du groupe pour notifier de l'ajout
-    //     foreach ($groupMembers as $member) {
+
+    //     if (!$group) {
+    //         return response()->json(['message' => 'Groupe introuvable.'], 404);
+    //     }
+
+    //     // Ajout du membre
+    //     $membre = Membre::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'groupe_id' => $group->id,
+    //     ]);
+
+    //     // Récupérer l'utilisateur qui a ajouté le membre (utilisateur actuellement connecté)
+    //     $addedBy = auth()->user();
+
+    //     // Envoi de l'email au nouveau membre
+    //     Mail::to($membre->email)->send(new MemberAddedConfirmation($request->name, $group->name));
+
+    //     // Récupérer les autres membres du groupe
+    //     $members = Membre::where('groupe_id', $group->id)->get();
+
+       
+
+    //     // Envoi de l'email de notification aux autres membres du groupe
+    //     foreach ($members as $member) {
     //         Mail::to($member->email)->send(new GroupMemberAddedNotification($membre->name, $addedBy->name, $group->name));
     //     }
-    
+
     //     return response()->json([
     //         'message' => 'Membre ajouté avec succès au groupe!',
     //         'membre' => $membre
     //     ], 201);
+
+
     // }
 
 
 
+//     public function addMember(Request $request, $groupId)
+// {
+//     // Validation des données
+//     $request->validate([
+//         'name' => 'required|string|max:255',
+//         'email' => 'required|email|:membres,email',
+//         'groupe_id' => 'required|exists:groupes,id', // Le groupe doit exister
+//     ]);
+
+//     // Récupérer le groupe
+//     $group = Groupe::find($groupId);
+
+//     if (!$group) {
+//         return response()->json(['message' => 'Groupe introuvable.'], 404);
+//     }
+
+//     // Vérifier si le membre est déjà inscrit
+//     $membre = Membre::where('email', $request->email)->first();
+
+//     if ($membre) {
+//         return response()->json(['message' => 'Ce membre est déjà inscrit.'], 400);
+//     }
+
+//     // Ajout du membre
+//     $membre = Membre::create([
+//         'name' => $request->name,
+//         'email' => $request->email,
+//         'groupe_id' => $group->id,
+//     ]);
+
+//     // Récupérer l'utilisateur qui a ajouté le membre (utilisateur actuellement connecté)
+//     $addedBy = auth()->user();
+
+//     // Envoi de l'email au nouveau membre
+//     Mail::to($membre->email)->send(new MemberAddedConfirmation($request->name, $group->name));
+
+//     // Récupérer les autres membres du groupe
+//     $members = Membre::where('groupe_id', $group->id)->get();
+
+//     // Envoi de l'email de notification aux autres membres du groupe
+//     foreach ($members as $member) {
+//         Mail::to($member->email)->send(new GroupMemberAddedNotification($membre->name, $addedBy->name, $group->name));
+//     }
+
+//     return response()->json([
+//         'message' => 'Membre ajouté avec succès au groupe!',
+//         'membre' => $membre
+//     ], 201);
+// }
 
 
-    public function addMember(Request $request, $groupId)
+
+
+
+public function addMember(Request $request, $groupId)
 {
     // Validation des données
     $request->validate([
         'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:membres,email',
+        'email' => 'required|email|unique:invited_members,email', // L'email ne doit pas déjà être dans la table des invitations
         'groupe_id' => 'required|exists:groupes,id', // Le groupe doit exister
     ]);
 
@@ -151,37 +189,109 @@ class GroupController extends Controller
         return response()->json(['message' => 'Groupe introuvable.'], 404);
     }
 
-    // Ajout du membre
-    $membre = Membre::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'groupe_id' => $group->id,
-    ]);
+    // Vérifier si l'utilisateur est déjà inscrit dans la table `users`
+    $existingUser = User::where('email', $request->email)->first();
 
-    // Récupérer l'utilisateur qui a ajouté le membre (utilisateur actuellement connecté)
+    if ($existingUser) {
+        // Si l'utilisateur est déjà inscrit, on l'ajoute directement au groupe
+        $membre = Membre::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'groupe_id' => $group->id,
+        ]);
+
+         // Récupérer l'utilisateur qui a ajouté le membre (utilisateur actuellement connecté)
     $addedBy = auth()->user();
 
-    // Envoi de l'email au nouveau membre
-    Mail::to($membre->email)->send(new MemberAddedConfirmation($membre->name, $group->name));
+//     // Envoi de l'email au nouveau membre
+    Mail::to($membre->email)->send(new MemberAddedConfirmation($request->name, $group->name));
 
-    // Récupérer les autres membres du groupe
-    $members = Membre::where('groupe_id', $group->id)->get();
+        // Notifier les autres membres
+        $members = Membre::where('groupe_id', $group->id)->get();
+        $addedBy = auth()->user();
+        foreach ($members as $member) {
+            Mail::to($member->email)->send(new GroupMemberAddedNotification($membre->name, $addedBy->name, $group->name));
+        }
 
-    // Envoi de l'email de notification aux autres membres du groupe
-    foreach ($members as $member) {
-        Mail::to($member->email)->send(new GroupMemberAddedNotification($membre->name, $addedBy->name, $group->name));
+        return response()->json([
+            'message' => 'Membre ajouté avec succès au groupe!',
+            'membre' => $membre
+        ], 201);
+    } else {
+        // Si l'utilisateur n'est pas inscrit, envoyer une invitation par email
+        // Ajouter à la table `invited_members`
+        InvitedMembers::create([
+            'email' => $request->email,
+            'groupe_id' => $group->id,
+        ]);
+
+        // Envoyer l'email d'invitation
+        Mail::to($request->email)->send(new InviteToGroupMail($group->name, $request->name));
+
+        return response()->json([
+            'message' => 'Invitation envoyée avec succès à l\'email: ' . $request->email,
+        ], 201);
     }
-
-    return response()->json([
-        'message' => 'Membre ajouté avec succès au groupe!',
-        'membre' => $membre
-    ], 201);
 }
 
 
-    
 
-    
+// public function addMember(Request $request, $groupId)
+// {
+//     // Validation des données
+//     $request->validate([
+//         'name' => 'required|string|max:255',
+//         'email' => 'required|email|:membres,email',
+//         'groupe_id' => 'required|exists:groupes,id', // Le groupe doit exister
+//     ]);
+
+//     // Récupérer le groupe
+//     $group = Groupe::find($groupId);
+
+//     if (!$group) {
+//         return response()->json(['message' => 'Groupe introuvable.'], 404);
+//     }
+
+//     // Vérifier si le membre est déjà inscrit
+//     $membre = Membre::where('email', $request->email)->first();
+
+//     if ($membre) {
+//         return response()->json(['message' => 'Ce membre est déjà inscrit.'], 400);
+//     }
+
+//     // Ajout du membre
+//     $membre = Membre::create([
+//         'name' => $request->name,
+//         'email' => $request->email,
+//         'groupe_id' => $group->id,
+//     ]);
+
+//     // Récupérer l'utilisateur qui a ajouté le membre (utilisateur actuellement connecté)
+//     $addedBy = auth()->user();
+
+//     // Envoi de l'email au nouveau membre
+//     Mail::to($membre->email)->send(new MemberAddedConfirmation($request->name, $group->name));
+
+//     // Récupérer les autres membres du groupe
+//     $members = Membre::where('groupe_id', $group->id)->get();
+
+//     // Envoi de l'email de notification aux autres membres du groupe
+//     foreach ($members as $member) {
+//         Mail::to($member->email)->send(new GroupMemberAddedNotification($membre->name, $addedBy->name, $group->name));
+//     }
+
+//     return response()->json([
+//         'message' => 'Membre ajouté avec succès au groupe!',
+//         'membre' => $membre
+//     ], 201);
+// }
+
+
+
+
+
+
+
 
     public function uploadFile(Request $request, $groupId)
     {
@@ -204,7 +314,7 @@ class GroupController extends Controller
         }
 
         // Ajout du fichier
-       
+
 
         return response()->json([
             'message' => 'Fichier ajouté au groupe avec succès!',

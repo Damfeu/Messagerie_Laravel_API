@@ -3,11 +3,11 @@
 <p>Un nouveau membre a été ajouté au groupe <strong>{{ $groupName }}</strong>.</p>
 
 <p>
-    <strong>Nouveau membre :</strong> {{ $newMember->name }}<br>
-    <strong>Email :</strong> {{ $newMember->email }}
+    <strong>Nouveau membre :</strong> {{ $newMember }}<br>
+    <strong>Email :</strong> {{ $newMember }}
 </p>
 
-<p>Ajouté par : {{ $addedBy->name }}</p>
+<p>Ajouté par : {{ $addedBy }}</p>
 
 <p>Merci de votre collaboration,</p>
-<p>L'équipe EcoCollecte</p>
+<p>L'équipe FlickTalk </p>

@@ -11,7 +11,7 @@ class Membre extends Model
     use HasFactory, Notifiable;
 
 
-    protected $fillable = ['name', 'groupe_id'];
+    protected $fillable = ['name', 'groupe_id', 'email'];
 
     protected $table = 'membres'; // Nom de la table
 
