@@ -18,66 +18,135 @@ class AuthController extends Controller
 {
     // Méthode pour l'inscription
 
+    // public function register(Request $request)
+    // {
+    //     // Valider les données reçues
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:4',
+    //         'password_confirmation' => 'required|string|same:password',
+    //     ]);
+    
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+    
+    //     // Générer un code d'authentification ou un code aléatoire pour l'e-mail
+    //     $authCode = rand(1000, 9999); // Exemple : générer un code aléatoire à 4 chiffres
+    
+    //     // Vérifier si l'utilisateur a été invité
+    //     $invitedMember = InvitedMembers::where('email', $request->email)->first();
+    
+    //     // Créer un nouvel utilisateur
+    //     $user = new User();
+    //     $user->name = $request->name;
+    //     $user->email = $invitedMember->email;
+    //     $user->password = Hash::make($request->password);
+    //     $user->auth_code = $authCode;
+    //     $user->email_verified = false;
+    //     $user->save();
+    
+    //     // Créer un token pour l'utilisateur
+    //     $token = $user->createToken('authToken')->plainTextToken;
+    
+    //     // Si l'utilisateur a été invité, ajouter l'utilisateur au groupe
+    //     if ($user->email === $invitedMember->email ) {
+    //         // Ajouter l'utilisateur comme membre du groupe
+    //         Membre::create([
+    //             'name' => $request->name,
+    //             'email' => $user->email,
+    //             'groupe_id' => $invitedMember->groupe_id,
+    //         ]);
+    
+    //         // Notifier les autres membres du groupe
+    //         $groupMembers = Membre::where('groupe_id', $invitedMember->groupe_id)->get();
+    //         foreach ($groupMembers as $member) {
+    //             Mail::to($member->email)->send(new GroupMemberAddedNotification($user->name, 'Admin', $invitedMember->group->name));
+    //         }
+    
+    //         // Supprimer l'entrée de la table des invitations après l'inscription
+    //         $invitedMember->delete();
+    //     }
+    
+    //     // Envoyer l'e-mail de code OTP
+    //     Mail::to($user->email)->send(new OtpCodeMail($authCode));
+    
+    //     return response()->json([
+    //         'user' => $user,
+    //         'token' => $token,
+    //         'message' => $invitedMember ? 'Inscription réussie et ajouté au groupe.' : 'Inscription réussie.',
+    //     ], 201);
+    // }
+
+
     public function register(Request $request)
-    {
-        // Valider les données reçues
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:4',
-            'password_confirmation' => 'required|string|same:password',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-    
-        // Générer un code d'authentification ou un code aléatoire pour l'e-mail
-        $authCode = rand(1000, 9999); // Exemple : générer un code aléatoire à 4 chiffres
-    
-        // Vérifier si l'utilisateur a été invité
-        $invitedMember = InvitedMembers::where('email', $request->email)->first();
-    
-        // Créer un nouvel utilisateur
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $invitedMember->email;
-        $user->password = Hash::make($request->password);
-        $user->auth_code = $authCode;
-        $user->email_verified = false;
-        $user->save();
-    
-        // Créer un token pour l'utilisateur
-        $token = $user->createToken('authToken')->plainTextToken;
-    
-        // Si l'utilisateur a été invité, ajouter l'utilisateur au groupe
-        if ($user->email === $invitedMember->email ) {
-            // Ajouter l'utilisateur comme membre du groupe
-            Membre::create([
-                'name' => $request->name,
-                'email' => $user->email,
-                'groupe_id' => $invitedMember->groupe_id,
-            ]);
-    
-            // Notifier les autres membres du groupe
-            $groupMembers = Membre::where('groupe_id', $invitedMember->groupe_id)->get();
-            foreach ($groupMembers as $member) {
-                Mail::to($member->email)->send(new GroupMemberAddedNotification($user->name, 'Admin', $invitedMember->group->name));
-            }
-    
-            // Supprimer l'entrée de la table des invitations après l'inscription
-            $invitedMember->delete();
-        }
-    
-        // Envoyer l'e-mail de code OTP
-        Mail::to($user->email)->send(new OtpCodeMail($authCode));
-    
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-            'message' => $invitedMember ? 'Inscription réussie et ajouté au groupe.' : 'Inscription réussie.',
-        ], 201);
+{
+    // Valider les données reçues
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:4',
+        'password_confirmation' => 'required|string|same:password',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
     }
+
+    // Générer un code d'authentification ou un code aléatoire pour l'e-mail
+    $authCode = rand(1000, 9999); // Exemple : générer un code aléatoire à 4 chiffres
+
+    // Vérifier si l'utilisateur a été invité
+    $invitedMember = InvitedMembers::where('email', $request->email)->first();
+
+    // Créer un nouvel utilisateur
+    $user = new User();
+    $user->name = $request->name;
+
+    // Si l'utilisateur a été invité, utiliser l'e-mail de l'invité, sinon utiliser l'e-mail du formulaire
+    if ($invitedMember) {
+        $user->email = $invitedMember->email;
+    } else {
+        $user->email = $request->email;
+    }
+
+    $user->password = Hash::make($request->password);
+    $user->auth_code = $authCode;
+    $user->email_verified = false;
+    $user->save();
+
+    // Créer un token pour l'utilisateur
+    $token = $user->createToken('authToken')->plainTextToken;
+
+    // Si l'utilisateur a été invité, ajouter l'utilisateur au groupe
+    if ($invitedMember) {
+        Membre::create([
+            'name' => $request->name,
+            'email' => $user->email,
+            'groupe_id' => $invitedMember->groupe_id,
+        ]);
+
+        // Notifier les autres membres du groupe
+        $groupMembers = Membre::where('groupe_id', $invitedMember->groupe_id)->get();
+        foreach ($groupMembers as $member) {
+            Mail::to($member->email)->send(new GroupMemberAddedNotification($user->name, 'Admin', $invitedMember->group->name));
+        }
+
+        // Supprimer l'entrée de la table des invitations après l'inscription
+        $invitedMember->delete();
+    }
+
+    // Envoyer l'e-mail de code OTP
+    Mail::to($user->email)->send(new OtpCodeMail($authCode));
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token,
+        'message' => $invitedMember ? 'Inscription réussie et ajouté au groupe.' : 'Inscription réussie.',
+    ], 201);
+}
+
     
 
 
